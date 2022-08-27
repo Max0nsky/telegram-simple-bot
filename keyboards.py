@@ -1,18 +1,20 @@
 from telebot import types
 
-
 class Keyboard:
 
+    # Удаление клавиатуры
     @staticmethod
     def delete():
         return types.ReplyKeyboardRemove()
-    
+
+    # Стандартная клавиатура записи
     @staticmethod
     def v1():
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("Запись"))
+        keyboard.add(types.KeyboardButton("Запись 📝"))
         return keyboard
 
+    # Клавиатура со списком услуг
     @staticmethod
     def v2():
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)

@@ -1,13 +1,19 @@
 storage = {}
 
 # Структура собираемых данных
-def init_storage(message):
-    storage[message.from_user.id] = dict(user_name=None, user_service=None, user_date=None)
+def init_storage(chat_id):
+    storage[chat_id] = dict(
+        user_nickname=dict(value='Не выбрано'),
+        user_name=dict(value='Не выбрано'),
+        user_service=dict(value='Не выбрано'),
+        user_date=dict(value='Не выбрано'),
+        user_comment=dict(value='Не выбрано'),
+    )
 
 # Установить значение по ключу
-def set_storage_data(message, key, value):
-    storage[message.from_user.id][key] = dict(value=value)
+def set_storage_data(chat_id, key, value):
+    storage[chat_id][key] = dict(value=value)
 
 # Получить значение по ключу
-def get_storage_data(message, key):
-    return storage[message.from_user.id][key].get('value')
+def get_storage_data(chat_id, key):
+    return storage[chat_id][key].get('value')
