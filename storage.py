@@ -3,11 +3,11 @@ storage = {}
 # Структура собираемых данных
 def init_storage(chat_id):
     storage[chat_id] = dict(
-        user_nickname=dict(value='Не выбрано'),
-        user_name=dict(value='Не выбрано'),
-        user_service=dict(value='Не выбрано'),
-        user_date=dict(value='Не выбрано'),
-        user_comment=dict(value='Не выбрано'),
+        user_nickname=dict(value='Нет'),
+        user_name=dict(value='Нет'),
+        user_service=dict(value='Нет'),
+        user_date=dict(value='Нет'),
+        user_comment=dict(value='Нет'),
     )
 
 # Установить значение по ключу
