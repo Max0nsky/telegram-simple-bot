@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from unicodedata import name
 import telebot
 import params
-import storage
 import datetime
+import Storage.storage as storage
+import Masters.masters as masters
 
 from telebot import types
-from keyboards import Keyboard
+from Keyboards.keyboards import Keyboard
 from telebot_calendar import Calendar, CallbackData, RUSSIAN_LANGUAGE
 
 # Настройки бота
@@ -30,12 +32,28 @@ def start(message):
     storage.init_storage(message.from_user.id)
     if message.text in ['Запись 📝', 'Запись', 'запись']:
         making_user_record(message)
-    elif message.text in ['Контакты 🗺', 'Контакты', 'контакты']:
-        bot.send_message(message.chat.id, "🙋‍♀️<b>Привет! Меня зовут Фамилия Имя Отчество!</b>\n Краткое описание вида деятельности\n Краткое описание услуг и т.д.\n\n <a href='https://yandex.ru/maps/-/CCUVIMELcD'>🗺 Воронеж, ул.Пушкина, д.40</a>" ,parse_mode='HTML', reply_markup=Keyboard.v1())
+    elif message.text in ['О салоне 🗺', 'О салоне', 'о салоне']:
+        send_information_about(message)
+    elif message.text in ['Мастера 🙎‍♀️', 'Мастера', 'мастера']:
+        send_masters_list(message)
     else:
-        bot.send_message(message.chat.id, "Не знаю что на это ответить", reply_markup=Keyboard.v1())
+        bot.reply_to(message, "Не знаю что на это ответить:", reply_markup=Keyboard.v1())
 
 
+# Вывод списка мастеров
+def send_masters_list(message):
+    list_masters = masters.get_masters_list()
+    for key in list_masters.keys():
+        caption = list_masters[key]['name']
+        image = open(list_masters[key]['image'], 'rb')
+        bot.send_photo(message.chat.id, image, caption=caption, reply_markup=Keyboard.v1())
+
+
+# Вывод информации о салоне
+def send_information_about(message):
+    bot.send_message(message.chat.id, "🙋‍♀️<b>Привет! Меня зовут Фамилия Имя Отчество!</b>\n Краткое описание вида деятельности\n Краткое описание услуг и т.д.\n\n <a href='https://yandex.ru/maps/-/CCUVIMELcD'>🗺 Воронеж, ул.Пушкина, д.40</a>" ,parse_mode='HTML', reply_markup=Keyboard.v1())
+    
+        
 # Создание записи на услугу
 def making_user_record(message):
     storage.set_storage_data(message.from_user.id, "user_nickname", message.from_user.username)
@@ -60,7 +78,7 @@ def plus_service(message):
 # Шаг 3 - выбор даты
 def plus_date(message):
     user_date = storage.get_storage_data(message.from_user.id, "user_date")
-    if user_date == 'Нет':
+    if user_date == storage.EMPTY_VALUE:
         bot.send_message(message.chat.id, "Выберите дату из меню выше", reply_markup=Keyboard.delete())
         bot.register_next_step_handler(message, plus_date)
         return
