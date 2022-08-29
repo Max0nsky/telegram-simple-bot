@@ -24,3 +24,12 @@ class Keyboard:
         keyboard.add(*["✔️ Услуга 3"])
         keyboard.add(*["✔️ Услуга 4"])
         return keyboard
+    
+    # Клавиатура со списком адресов
+    @staticmethod
+    def v3():
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(*["📌 Воронеж, ул. Сорокина, д. 5"])
+        keyboard.add(*["📌 Воронеж, ул. Лермонтова, д. 10"])
+        keyboard.add(*["📌 Воронеж, ул. Маяковского, д. 15"])
+        return keyboard

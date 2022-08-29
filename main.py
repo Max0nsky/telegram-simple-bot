@@ -23,7 +23,7 @@ now = datetime.datetime.now()
 # Стартовая команда при первом запуске
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name}! Добро пожаловать ✌️", reply_markup=Keyboard.v1())
+    bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name}! Добро пожаловать ✌️", reply_markup=Keyboard.v3())
 
 
 # Обработка сообщений
@@ -64,18 +64,25 @@ def making_user_record(message):
 # Шаг 1 - запись имени
 def plus_name(message):
     storage.set_storage_data(message.from_user.id, "user_name", message.text)
-    bot.reply_to(message, "✔️ Приятно познакомиться! Выберите услугу:", reply_markup=Keyboard.v2())
+    bot.reply_to(message, "✔️ Приятно познакомиться! Выберите филиал:", reply_markup=Keyboard.v3())
+    bot.register_next_step_handler(message, plus_address)
+
+
+# Шаг 2 - запись филиала
+def plus_address(message):
+    storage.set_storage_data(message.from_user.id, "user_address", message.text)
+    bot.reply_to(message, "Супер! Теперь выберите услугу:", reply_markup=Keyboard.v2())
     bot.register_next_step_handler(message, plus_service)
 
 
-# Шаг 2 - запись услуги
+# Шаг 3 - запись услуги
 def plus_service(message):
     storage.set_storage_data(message.from_user.id, "user_service", message.text)
     bot.send_message(message.chat.id, "🗓 Интерактивный календарь для выбора даты:", reply_markup=calendar.create_calendar(name=calendar_rec.prefix, year=now.year, month=now.month))
     plus_date(message)
 
 
-# Шаг 3 - выбор даты
+# Шаг 4 - выбор даты
 def plus_date(message):
     user_date = storage.get_storage_data(message.from_user.id, "user_date")
     if user_date == storage.EMPTY_VALUE:
@@ -88,7 +95,7 @@ def plus_date(message):
         make_result(message)
 
 
-# Шаг 4 - обработка календаря 
+# Шаг 5 - обработка календаря, запись комментария
 @bot.callback_query_handler(func=lambda call: call.data.startswith(calendar_rec.prefix))
 def callback_inline(call: types.CallbackQuery):
     chat_id = call.from_user.id
@@ -109,6 +116,7 @@ def make_result(message):
     bot.reply_to(message, "Запись завершена", reply_markup=Keyboard.v1())
     
     user_name = storage.get_storage_data(message.from_user.id, "user_name")
+    user_address = storage.get_storage_data(message.from_user.id, "user_address")
     user_service = storage.get_storage_data(message.from_user.id, "user_service")
     user_date = storage.get_storage_data(message.from_user.id, "user_date")
     user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
@@ -118,6 +126,7 @@ def make_result(message):
         f"""
         Большое спасибо! 👍
         Ваше имя: {user_name}
+        Адрес: {user_address}
         Услуга: {user_service}
         Дата: {user_date}
         Комментарий: {user_comment}
