@@ -1,5 +1,5 @@
 from telebot import types
-import Masters.masters as masters
+import Data.data as data
 
 class Keyboard:
 
@@ -8,59 +8,70 @@ class Keyboard:
     def delete():
         return types.ReplyKeyboardRemove()
 
+    # Кнопка отмены
+    @staticmethod
+    def cancel():
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(*["Отмена"])
+        return keyboard
+
 
     # Стандартная клавиатура записи
     @staticmethod
     def default():
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add(*["Запись 📝"])
-        keyboard.add(*["О салоне 🗺", "Мастера 🙎‍♀️"])
+        keyboard.add(*["О салоне 🗺", "Консультация ❔", "Мастера 🙎‍♀️"])
         return keyboard
 
 
     # Клавиатура со списком услуг
     @staticmethod
     def service(master_key = None):
-        list_masters = masters.get_masters_list()
+        list_masters = data.get_masters_list()
+        list_services = data.get_services_list()
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         if master_key in list_masters:
             # Динамическая клавиатура услуг мастера
             for service in list_masters[master_key]['services']:
-                keyboard.add(*[service])
+                keyboard.add(*[list_services[service]['name']])
         else:
             # Клавиатура услуг по умолчанию
-            keyboard.add(*["✔️ Услуга 1"])
-            keyboard.add(*["✔️ Услуга 2"])
-            keyboard.add(*["✔️ Услуга 3"])
-            keyboard.add(*["✔️ Услуга 4"])
+            for service in list_services.values():
+                keyboard.add(*[service['name']])
+
+        keyboard.add(*["Подробнее", "Отмена"])
+
         return keyboard
 
 
     # Клавиатура со списком адресов
     @staticmethod
     def address():
+        list_address = data.get_address_list()
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(*["Воронеж, ул. Сорокина, д. 5"])
-        keyboard.add(*["Воронеж, ул. Лермонтова, д. 10"])
-        keyboard.add(*["Воронеж, ул. Маяковского, д. 15"])
+        for address in list_address.values():
+            keyboard.add(*[address['name']])
+        keyboard.add(*["Отмена"])
         return keyboard
 
 
     # Клавиатура со списком временных промежутков
     @staticmethod
     def times():
+        list_times = data.get_times_list()
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(*["09:00 - 12:00"])
-        keyboard.add(*["12:00 - 18:00"])
-        keyboard.add(*["18:00 - 21:00"])
+        for times in list_times.values():
+            keyboard.add(*[times['name']])
+        keyboard.add(*["Отмена"])
         return keyboard
 
 
     # Клавиатура со списком мастеров (перебор из masters)
     @staticmethod
     def masters():
-        list_masters = masters.get_masters_list()
+        list_masters = data.get_masters_list()
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        for key in list_masters.keys():
-            keyboard.add(*[list_masters[key]['name']])
+        for masters in list_masters.values():
+            keyboard.add(*[masters['name']])
         return keyboard

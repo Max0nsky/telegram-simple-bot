@@ -3,7 +3,7 @@ import telebot
 import params
 import datetime
 import Storage.storage as storage
-import Masters.masters as masters
+import Data.data as data
 
 from telebot import types
 from Keyboards.keyboards import Keyboard
@@ -35,13 +35,15 @@ def start(message):
         send_information_about(message)
     elif message.text in ['Мастера 🙎‍♀️', 'Мастера', 'мастера']:
         send_masters_list(message)
+    elif message.text in ['Консультация ❔', 'Консультация', 'консультация']:
+        making_user_consultation(message)
     else:
         bot.reply_to(message, "Не знаю что на это ответить:", reply_markup=Keyboard.default())
 
 
 # Вывод списка мастеров
 def send_masters_list(message):
-    list_masters = masters.get_masters_list()
+    list_masters = data.get_masters_list()
     for key in list_masters.keys():
         caption = list_masters[key]['name']
         image = open(list_masters[key]['image'], 'rb')
@@ -53,47 +55,70 @@ def send_masters_list(message):
 
 # Вывод информации о салоне
 def send_information_about(message):
-    bot.send_message(message.chat.id, "🙋‍♀️<b>Привет! Меня зовут Фамилия Имя Отчество!</b>\n Краткое описание вида деятельности\n Краткое описание услуг и т.д.\n\n <a href='https://yandex.ru/maps/-/CCUVIMELcD'>🗺 Воронеж, ул.Пушкина, д.40</a>" ,parse_mode='HTML', reply_markup=Keyboard.default())
+    bot.send_message(message.chat.id, data.salon_info['name'] ,parse_mode='HTML', reply_markup=Keyboard.default())
     
 
-# Создание записи на услугу
+# Начало №1: Создание записи на услугу
 def making_user_record(message):
-    bot.send_message(message.chat.id, "✏️ Введите ваше имя:", reply_markup=Keyboard.delete())
+    bot.send_message(message.chat.id, "✏️ Введите ваше имя:", reply_markup=Keyboard.cancel())
     bot.register_next_step_handler(message, plus_name)
 
 
 # Шаг 1 - запись имени
 def plus_name(message):
-    storage.set_storage_data(message.from_user.id, "user_nickname", message.from_user.username)
-    storage.set_storage_data(message.from_user.id, "user_name", message.text)
-    bot.reply_to(message, "Приятно познакомиться! Выберите филиал:", reply_markup=Keyboard.address())
-    bot.register_next_step_handler(message, plus_address)
+    if message.text == 'Отмена':
+        delete_user_record(message.from_user.id)
+    else:
+        storage.set_storage_data(message.from_user.id, "user_nickname", message.from_user.username)
+        storage.set_storage_data(message.from_user.id, "user_name", message.text)
+        bot.reply_to(message, "Приятно познакомиться! Выберите филиал:", reply_markup=Keyboard.address())
+        bot.register_next_step_handler(message, plus_address)
 
 
 # Шаг 2 - запись филиала
 def plus_address(message):
-    storage.set_storage_data(message.from_user.id, "user_address", message.text)
-    user_master_key = storage.get_storage_data(message.from_user.id, "user_master_key")
-    bot.reply_to(message, "✔️ Супер! Теперь выберите услугу:", reply_markup=Keyboard.service(user_master_key))
-    bot.register_next_step_handler(message, plus_service)
+    if message.text == 'Отмена':
+        delete_user_record(message.from_user.id)
+    else:
+        storage.set_storage_data(message.from_user.id, "user_address", message.text)
+        user_master_key = storage.get_storage_data(message.from_user.id, "user_master_key")
+        bot.reply_to(message, "✔️ Супер! Теперь выберите услугу:", reply_markup=Keyboard.service(user_master_key))
+        bot.register_next_step_handler(message, plus_service)
 
 
 # Шаг 3 - запись услуги
 def plus_service(message):
+    user_master_key = storage.get_storage_data(message.from_user.id, "user_master_key")
     storage.set_storage_data(message.from_user.id, "user_service", message.text)
-    bot.send_message(message.chat.id, "🗓 Интерактивный календарь для выбора даты:", reply_markup=calendar.create_calendar(name=calendar_rec.prefix, year=now.year, month=now.month))
-    plus_date(message)
+
+    if message.text == 'Отмена':
+        delete_user_record(message.from_user.id)
+    elif message.text == 'Подробнее':
+        list_services = data.get_services_list()
+        list_masters = data.get_masters_list()
+        if user_master_key == storage.EMPTY_VALUE:
+            for service in list_services.values():
+                text_service = service['name'] + ":\n" + service['description']
+                bot.send_message(message.chat.id, text_service, reply_markup=Keyboard.service(user_master_key))
+        else:
+            for service in list_masters[user_master_key]['services']:
+                text_service = list_services[service]['name'] + ":\n" + list_services[service]['description']
+                bot.send_message(message.chat.id, text_service, reply_markup=Keyboard.service(user_master_key)) 
+        bot.register_next_step_handler(message, plus_service)
+    else:
+        bot.send_message(message.chat.id, "🗓 Интерактивный календарь для выбора даты:", reply_markup=calendar.create_calendar(name=calendar_rec.prefix, year=now.year, month=now.month))
+        plus_date(message)
 
 
 # Шаг 4 - выбор даты
 def plus_date(message):
     user_date = storage.get_storage_data(message.from_user.id, "user_date")
     if user_date == storage.EMPTY_VALUE:
-        bot.send_message(message.chat.id, "Выберите дату из меню выше", reply_markup=Keyboard.delete())
-        bot.register_next_step_handler(message, plus_date)
-        return
-    elif message.text in ['Отмена', 'отмена']:
-        delete_user_record(message.from_user.id)
+        if message.text == 'Отмена':
+            delete_user_record(message.from_user.id)
+        else:
+            bot.send_message(message.chat.id, "Выберите дату из меню выше", reply_markup=Keyboard.cancel())
+            bot.register_next_step_handler(message, plus_date)
     else:
         plus_time(message)
 
@@ -115,14 +140,14 @@ def callback_inline(call: types.CallbackQuery):
 # Шаг 5 - выбор времени, запись комментария
 def plus_time(message):
     storage.set_storage_data(message.from_user.id, "user_time", message.text)
-    bot.send_message(message.from_user.id, text="Как мы можем с вами связаться? 🤔\nМожете оставить телефон или комментарий:", reply_markup=Keyboard.delete())
+    bot.send_message(message.from_user.id, text="Как мы можем с вами связаться? 🤔\nМожете оставить телефон или комментарий:", reply_markup=Keyboard.cancel())
     bot.register_next_step_handler(message, make_result)
 
 
 # Обработка callback_inline
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    list_masters = masters.get_masters_list()
+    list_masters = data.get_masters_list()
     callback_data = call.data
     message = call.message
     
@@ -134,6 +159,10 @@ def callback_inline(call):
 
 # Результат записи на услугу
 def make_result(message):
+    if message.text == 'Отмена':
+        delete_user_record(message.from_user.id)
+        return
+
     storage.set_storage_data(message.from_user.id, "user_comment", message.text)
     bot.reply_to(message, "Запись завершена", reply_markup=Keyboard.default())
     
@@ -161,6 +190,50 @@ def make_result(message):
     )
     
     bot.send_message(message.chat.id, text)
+    
+
+# Начало №2: Создание записи на консультацию
+def making_user_consultation(message):
+    bot.send_message(message.chat.id, "✏️ Введите ваше имя:", reply_markup=Keyboard.cancel())
+    bot.register_next_step_handler(message, plus_consultation_name)
+
+
+# Шаг 1 - запись имени, комментария
+def plus_consultation_name(message):
+    if message.text == 'Отмена':
+        delete_user_record(message.from_user.id)
+        return
+    
+    storage.set_storage_data(message.from_user.id, "user_nickname", message.from_user.username)
+    storage.set_storage_data(message.from_user.id, "user_name", message.text)
+    bot.reply_to(message, "Как мы можем с вами связаться? 🤔\nМожете оставить телефон или комментарий::", reply_markup=Keyboard.cancel())
+    bot.register_next_step_handler(message, make_result_consultation)
+
+
+# Результат записи на консультацию
+def make_result_consultation(message):
+    if message.text == 'Отмена':
+        delete_user_record(message.from_user.id)
+        return
+
+    storage.set_storage_data(message.from_user.id, "user_comment", message.text)
+    bot.reply_to(message, "Запись на консультацию завершена", reply_markup=Keyboard.default())
+    
+    user_name = storage.get_storage_data(message.from_user.id, "user_name")
+    user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
+    user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
+
+    text = (
+    f"""
+    Запись на консультацию! 🧐
+    Ваше имя: {user_name}
+    Комментарий: {user_comment}
+    Пользователь: @{user_nickname}
+    """
+    )
+    
+    bot.send_message(message.chat.id, text)
+
 
 # Отмена записи
 def delete_user_record(chat_id):
