@@ -1,50 +1,48 @@
-# Мастера
-masters = {
-    "master_1": {
-        "name": "Имя Первого Мастера",
-        "image": "images/master_1.png",
-        "services": {
-            "service_1",
-            "service_2",
-        },
-    },
-    "master_2": {
-        "name": "Имя Второго Мастера",
-        "image": "images/master_2.png",
-        "services": {
-            "service_1",
-            "service_3",
-        },
-    },
-    "master_3": {
-        "name": "Имя Третьего Мастера",
-        "image": "images/master_3.png",
-        "services": {
-            "service_2",
-            "service_4",
-        },
-    },
-}
+import pymysql.cursors
 
-# Услуги
-services = {
-    "service_1": {
-        "name": "✔️ Услуга 1",
-        "description": "Описание услуги 1",
-    },
-    "service_2": {
-        "name": "✔️ Услуга 2",
-        "description": "Описание услуги 2",
-    },
-    "service_3": {
-        "name": "✔️ Услуга 3",
-        "description": "Описание услуги 3",
-    },
-    "service_4": {
-        "name": "✔️ Услуга 4",
-        "description": "Описание услуги 4",
-    },
-}
+connection = pymysql.connect(host='localhost', user='root', password='', database='cms-telegram', cursorclass=pymysql.cursors.DictCursor)
+
+services = {}
+masters = {}
+
+with connection:
+    with connection.cursor() as cursor:
+
+        # Установка услуг
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM services WHERE is_delete = 0")
+        services_db = cur.fetchall()
+        for service in services_db:
+            key_service = str(service['id'])
+            
+            services[key_service] = {
+                'name': service['name'],
+                'description': service['description'],
+            }
+
+        # Установка мастеров
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM masters WHERE is_delete = 0")
+        masters_db = cur.fetchall()
+        for master in masters_db:
+            key_master = str(master['id'])
+            
+            masters[key_master] = {
+                'name': master['name'],
+                'image': master['image_path'],
+                'description': master['description'],
+                'services': {}
+            }
+            
+        # Установка услуг мастеров
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM masters_services")
+        masters_services_db = cur.fetchall()
+        for masters_service in masters_services_db:
+            key_master = str(masters_service['master_id'])
+            key_service = str(masters_service['service_id'])
+    
+            masters[key_master]['services'][key_service] = key_service
 
 # Филиалы
 address = {
@@ -79,9 +77,9 @@ salon_info = {
     },
 }
 
-
 def get_masters_list():
     return masters
+
 
 def get_services_list():
     return services
