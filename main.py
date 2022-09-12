@@ -175,6 +175,7 @@ def make_result(message):
     user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
     user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
 
+    # TODO - доделать
     text = (
     f"""
     Большое спасибо! 👍
@@ -223,6 +224,7 @@ def make_result_consultation(message):
     user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
     user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
 
+    # TODO - доделать
     text = (
     f"""
     Запись на консультацию! 🧐

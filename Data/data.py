@@ -44,6 +44,7 @@ with connection:
     
             masters[key_master]['services'][key_service] = key_service
 
+# TODO - доделать
 # Филиалы
 address = {
     "address_1": {
@@ -57,6 +58,7 @@ address = {
     },
 }
 
+# TODO - доделать
 # Рабочее время
 times = {
     "time_1": {
@@ -70,6 +72,7 @@ times = {
     },
 }
 
+# TODO - доделать
 # Информация о салоне
 salon_info = {
     "name": {
