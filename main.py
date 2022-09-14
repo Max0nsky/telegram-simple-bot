@@ -4,6 +4,7 @@ import params
 import datetime
 import Storage.storage as storage
 import Data.data as data
+import Db.insert as insert
 
 from telebot import types
 from Keyboards.keyboards import Keyboard
@@ -166,16 +167,20 @@ def make_result(message):
     storage.set_storage_data(message.from_user.id, "user_comment", message.text)
     bot.reply_to(message, "Запись завершена", reply_markup=Keyboard.default())
     
+    chat_id = message.from_user.id
     user_name = storage.get_storage_data(message.from_user.id, "user_name")
     user_master = storage.get_storage_data(message.from_user.id, "user_master")
+    user_master_key = storage.get_storage_data(message.from_user.id, "user_master_key")
     user_address = storage.get_storage_data(message.from_user.id, "user_address")
     user_service = storage.get_storage_data(message.from_user.id, "user_service")
+    user_service_key = storage.get_storage_data(message.from_user.id, "user_service_key")
     user_date = storage.get_storage_data(message.from_user.id, "user_date")
     user_time = storage.get_storage_data(message.from_user.id, "user_time")
     user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
     user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
 
-    # TODO - доделать
+    insert.create_order(chat_id, user_nickname, user_name, user_master, user_master_key, user_address, user_service, user_service_key, user_date, user_time, user_comment)
+
     text = (
     f"""
     Большое спасибо! 👍
@@ -192,6 +197,7 @@ def make_result(message):
     
     bot.send_message(message.chat.id, text)
     
+
 
 # Начало №2: Создание записи на консультацию
 def making_user_consultation(message):
@@ -220,11 +226,13 @@ def make_result_consultation(message):
     storage.set_storage_data(message.from_user.id, "user_comment", message.text)
     bot.reply_to(message, "Запись на консультацию завершена", reply_markup=Keyboard.default())
     
+    chat_id = message.from_user.id
     user_name = storage.get_storage_data(message.from_user.id, "user_name")
     user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
     user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
 
-    # TODO - доделать
+    insert.create_order_consultation(chat_id, user_nickname, user_name, user_comment)
+
     text = (
     f"""
     Запись на консультацию! 🧐

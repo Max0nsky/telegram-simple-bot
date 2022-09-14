@@ -1,6 +1,6 @@
-import pymysql.cursors
+import Db.db as db
 
-connection = pymysql.connect(host='localhost', user='root', password='', database='cms-telegram', cursorclass=pymysql.cursors.DictCursor)
+connection = db.connection
 
 services = {}
 masters = {}
@@ -82,7 +82,6 @@ salon_info = {
 
 def get_masters_list():
     return masters
-
 
 def get_services_list():
     return services
