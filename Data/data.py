@@ -1,3 +1,4 @@
+import params
 import Db.db as db
 
 connection = db.connection
@@ -8,9 +9,15 @@ masters = {}
 with connection:
     with connection.cursor() as cursor:
 
+        token = params.getToken()
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM user WHERE status = 10 AND tg_token = %s", token)
+        user_tg = cur.fetchall()
+        user_id = user_tg[0]['id']
+
         # Установка услуг
         cur = connection.cursor()
-        cur.execute("SELECT * FROM services WHERE is_delete = 0")
+        cur.execute("SELECT * FROM services WHERE is_delete = 0 AND user_id = %s", user_id)
         services_db = cur.fetchall()
         for service in services_db:
             key_service = str(service['id'])
@@ -22,7 +29,7 @@ with connection:
 
         # Установка мастеров
         cur = connection.cursor()
-        cur.execute("SELECT * FROM masters WHERE is_delete = 0")
+        cur.execute("SELECT * FROM masters WHERE is_delete = 0 AND user_id = %s", user_id)
         masters_db = cur.fetchall()
         for master in masters_db:
             key_master = str(master['id'])
@@ -41,8 +48,8 @@ with connection:
         for masters_service in masters_services_db:
             key_master = str(masters_service['master_id'])
             key_service = str(masters_service['service_id'])
-    
-            masters[key_master]['services'][key_service] = key_service
+            if key_master in masters:
+                masters[key_master]['services'][key_service] = key_service
 
 # TODO - доделать
 # Филиалы
