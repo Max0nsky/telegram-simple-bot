@@ -58,11 +58,20 @@ class Keyboard:
 
     # Клавиатура со списком временных промежутков
     @staticmethod
-    def times():
+    def times(master_key = None):
         list_times = data.get_times_list()
+        list_masters = data.get_masters_list()
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        for times in list_times.values():
-            keyboard.add(*[times['name']])
+        if master_key in list_masters:
+            # Динамическая клавиатура времени мастера
+            for times in list_masters[master_key]['times'].values():
+                print(times)
+                keyboard.add(*[times['name']])
+        else:
+            # Клавиатура времени по умолчанию
+            for times in list_times.values():
+                keyboard.add(*[times['name']])
+        
         keyboard.add(*["Отмена"])
         return keyboard
 

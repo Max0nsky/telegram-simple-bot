@@ -72,8 +72,13 @@ def plus_name(message):
     else:
         storage.set_storage_data(message.from_user.id, "user_nickname", message.from_user.username)
         storage.set_storage_data(message.from_user.id, "user_name", message.text)
-        bot.reply_to(message, "Приятно познакомиться! Выберите филиал:", reply_markup=Keyboard.address())
-        bot.register_next_step_handler(message, plus_address)
+        user_master_key = storage.get_storage_data(message.from_user.id, "user_master_key")
+        if user_master_key == storage.EMPTY_VALUE:
+            bot.reply_to(message, "Приятно познакомиться! Выберите филиал:", reply_markup=Keyboard.address())
+            bot.register_next_step_handler(message, plus_address)
+        else:
+            bot.reply_to(message, "✔️ Супер! Теперь выберите услугу:", reply_markup=Keyboard.service(user_master_key))
+            bot.register_next_step_handler(message, plus_service)
 
 
 # Шаг 2 - запись филиала
@@ -133,7 +138,8 @@ def callback_inline(call: types.CallbackQuery):
     
     if action == 'DAY':
         storage.set_storage_data(chat_id, "user_date", date.strftime("%d.%m.%Y"))
-        bot.send_message(chat_id, text=f'Вы выбрали {date.strftime("%d.%m.%Y")}. Теперь выберите время:', reply_markup=Keyboard.times())
+        user_master_key = storage.get_storage_data(chat_id, "user_master_key")
+        bot.send_message(chat_id, text=f'Вы выбрали {date.strftime("%d.%m.%Y")}. Теперь выберите время:', reply_markup=Keyboard.times(user_master_key))
     elif action == 'CANCEL':
         delete_user_record(chat_id)
 

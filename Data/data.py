@@ -9,6 +9,7 @@ masters = {}
 address = {}
 times = {}
 
+# Загрузка данных
 with connection:
     with connection.cursor() as cursor:
 
@@ -57,9 +58,20 @@ with connection:
                 'name': master['name'],
                 'image': master['image_path'],
                 'description': master['description'],
-                'services': {}
+                'services': {},
+                'times': {},
             }
             
+            masters[key_master]['times']['time_1'] = {'name': master['time_1']}
+            if master['time_2'] != "":
+                masters[key_master]['times']['time_2'] = {'name': master['time_2']}
+            if master['time_3'] != "":
+                masters[key_master]['times']['time_3'] = {'name': master['time_3']}
+            if master['time_4'] != "":
+                masters[key_master]['times']['time_4'] = {'name': master['time_4']}
+            if master['time_5'] != "":
+                masters[key_master]['times']['time_5'] = {'name': master['time_5']}
+
         # Установка услуг мастеров
         cur = connection.cursor()
         cur.execute("SELECT * FROM masters_services")
