@@ -1,13 +1,13 @@
-import codecs
 import params
 import Db.db as db
 
 connection = db.connection
 
+salon_info = {}
 services = {}
 masters = {}
 address = {}
-salon_info = {}
+times = {}
 
 with connection:
     with connection.cursor() as cursor:
@@ -17,9 +17,22 @@ with connection:
         cur.execute("SELECT * FROM user WHERE status = 10 AND tg_token = %s", token)
         user_tg = cur.fetchall()[0]
         user_id = user_tg['id']
+        
+        # Установка текста о компании
         tg_info_text = user_tg['tg_info_text']
         contents = tg_info_text.replace(r'\n', '\n')
         salon_info['name'] = {contents}
+
+        # Установка времени по умолчанию
+        times['time_1'] = {'name': user_tg['time_1']}
+        if user_tg['time_2'] != "":
+            times['time_2'] = {'name': user_tg['time_2']}
+        if user_tg['time_3'] != "":
+            times['time_3'] = {'name': user_tg['time_3']}
+        if user_tg['time_4'] != "":
+            times['time_4'] = {'name': user_tg['time_4']}
+        if user_tg['time_5'] != "":
+            times['time_5'] = {'name': user_tg['time_5']}
 
         # Установка услуг
         cur = connection.cursor()
@@ -60,28 +73,13 @@ with connection:
         # Установка филиалов
         cur = connection.cursor()
         cur.execute("SELECT * FROM address WHERE is_delete = 0 AND user_id = %s", user_id)
-        address_db = cur.fetchall()
-        for address in address_db:
-            key_address = str(address['id'])
-            
+        all_address_db = cur.fetchall()
+        for address_db in all_address_db:
+            key_address = str(address_db['id'])
+            name_address = str(address_db['name'])
             address[key_address] = {
-                'name': address['name'],
+                'name': name_address,
             }
-
-
-# TODO - доделать
-# Рабочее время
-times = {
-    "time_1": {
-        "name": "09:00 - 12:00",
-    },
-    "time_2": {
-        "name": "12:00 - 18:00",
-    },
-    "time_3": {
-        "name": "18:00 - 21:00",
-    },
-}
 
 def get_masters_list():
     return masters
