@@ -168,6 +168,9 @@ def make_result(message):
     bot.reply_to(message, "Запись завершена", reply_markup=Keyboard.default())
     
     chat_id = message.from_user.id
+    username = message.from_user.username
+    first_name = message.from_user.first_name
+    last_name = message.from_user.last_name
     user_name = storage.get_storage_data(message.from_user.id, "user_name")
     user_master = storage.get_storage_data(message.from_user.id, "user_master")
     user_master_key = storage.get_storage_data(message.from_user.id, "user_master_key")
@@ -180,6 +183,7 @@ def make_result(message):
     user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
 
     insert.create_order(chat_id, user_nickname, user_name, user_master, user_master_key, user_address, user_service, user_service_key, user_date, user_time, user_comment)
+    insert.create_or_check_user(chat_id, username, first_name, last_name)
 
     text = (
     f"""
@@ -227,11 +231,15 @@ def make_result_consultation(message):
     bot.reply_to(message, "Запись на консультацию завершена", reply_markup=Keyboard.default())
     
     chat_id = message.from_user.id
+    username = message.from_user.username
+    first_name = message.from_user.first_name
+    last_name = message.from_user.last_name
     user_name = storage.get_storage_data(message.from_user.id, "user_name")
     user_nickname = storage.get_storage_data(message.from_user.id, "user_nickname")
     user_comment = storage.get_storage_data(message.from_user.id, "user_comment")
 
     insert.create_order_consultation(chat_id, user_nickname, user_name, user_comment)
+    insert.create_or_check_user(chat_id, username, first_name, last_name)
 
     text = (
     f"""
