@@ -1,11 +1,11 @@
 import Db.db as db
 import params
 
-from calendar import calendar
 from time import time
 
 connection = db.connection
 
+# Id админа бота
 def get_admin_id():
     connection.ping() 
     token = params.getToken()
@@ -15,6 +15,7 @@ def get_admin_id():
     user_id = user_tg[0]['id']
     return user_id
 
+# Запись на услугу
 def create_order(chat_id, user_nickname, user_name, user_master, user_master_key, user_address, user_service, user_service_key, user_date, user_time, user_comment):
     connection.ping() 
     user_id = get_admin_id()
@@ -25,6 +26,7 @@ def create_order(chat_id, user_nickname, user_name, user_master, user_master_key
     connection.commit()
     cursor.close()
 
+# Запись на консультацию
 def create_order_consultation(chat_id, user_nickname, user_name, user_comment):
     connection.ping() 
     user_id = get_admin_id()
@@ -34,7 +36,8 @@ def create_order_consultation(chat_id, user_nickname, user_name, user_comment):
     cursor.execute(sql, (user_id, str(chat_id), str(user_nickname), str(user_name), str(user_comment), date))
     connection.commit()
     cursor.close()
-    
+
+# Создание пользователя, если ещё не существует в системе
 def create_or_check_user(chat_id, username, first_name, last_name):
     connection.ping() 
     user_id = get_admin_id()

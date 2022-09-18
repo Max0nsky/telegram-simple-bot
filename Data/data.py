@@ -1,3 +1,4 @@
+import codecs
 import params
 import Db.db as db
 
@@ -5,6 +6,8 @@ connection = db.connection
 
 services = {}
 masters = {}
+address = {}
+salon_info = {}
 
 with connection:
     with connection.cursor() as cursor:
@@ -12,8 +15,11 @@ with connection:
         token = params.getToken()
         cur = connection.cursor()
         cur.execute("SELECT * FROM user WHERE status = 10 AND tg_token = %s", token)
-        user_tg = cur.fetchall()
-        user_id = user_tg[0]['id']
+        user_tg = cur.fetchall()[0]
+        user_id = user_tg['id']
+        tg_info_text = user_tg['tg_info_text']
+        contents = tg_info_text.replace(r'\n', '\n')
+        salon_info['name'] = {contents}
 
         # Установка услуг
         cur = connection.cursor()
@@ -51,19 +57,17 @@ with connection:
             if key_master in masters:
                 masters[key_master]['services'][key_service] = key_service
 
-# TODO - доделать
-# Филиалы
-address = {
-    "address_1": {
-        "name": "Воронеж, ул. Сорокина, д. 5",
-    },
-    "address_2": {
-        "name": "Воронеж, ул. Лермонтова, д. 10",
-    },
-    "address_3": {
-        "name": "Воронеж, ул. Маяковского, д. 15",
-    },
-}
+        # Установка филиалов
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM address WHERE is_delete = 0 AND user_id = %s", user_id)
+        address_db = cur.fetchall()
+        for address in address_db:
+            key_address = str(address['id'])
+            
+            address[key_address] = {
+                'name': address['name'],
+            }
+
 
 # TODO - доделать
 # Рабочее время
@@ -76,14 +80,6 @@ times = {
     },
     "time_3": {
         "name": "18:00 - 21:00",
-    },
-}
-
-# TODO - доделать
-# Информация о салоне
-salon_info = {
-    "name": {
-        "🙋‍♀️<b>Привет! Меня зовут Фамилия Имя Отчество!</b>\n Краткое описание вида деятельности\n Краткое описание услуг и т.д.\n\n <a href='https://yandex.ru/maps/-/CCUVIMELcD'>🗺 Воронеж, ул.Пушкина, д.40</a>",
     },
 }
 
