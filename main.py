@@ -29,6 +29,8 @@ def start_message(message):
 # Обработка сообщений
 @bot.message_handler()
 def start(message):
+    
+    data.init_data()
     storage.init_storage(message.from_user.id)
     if message.text in ['Запись 📝', 'Запись', 'запись']:
         making_user_record(message)
